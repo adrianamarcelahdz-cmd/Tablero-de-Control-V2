@@ -21,7 +21,7 @@ df['FECHA_HECHOS'] = df['FECHA_HECHOS'].dt.date
 
 
 #Cálculo de los municipio con mas delitos 
-#.upper() para poner en mayuscula 
+max_municipio = df['MUNICIPIO_HECHOS'].value_counts().index[0].upper() #para poner en mayuscula 
 max_municipio = df ['MUNICIPIO_HECHOS'].value_counts().index[0].upper()
 
 
@@ -44,6 +44,8 @@ st.markdown(
 )
 
 st.image('img/encabezado.png', use_container_width=True)
+
+#MAPA 
 
 #st.header("Dashboard de Delitos - Fiscalía")
 st.dataframe(df)
@@ -98,9 +100,9 @@ col1, col2, col3, col4 = st.columns(4)
 #TARJETAS 
 #Tarjeta 1 municipio con mas delitos
 with col1:
-    st.markdown(f"""<h3 style='color:#F2A88D; 
-                background-color:#FFF6F5; 
-                border: 2px solid #F2A88D; 
+    st.markdown(f"""<h3 style='color:#2D4B73; 
+                background-color:#99B4BF; 
+                border: 2px solid #2D4B73; 
                 border-radius: 10px; padding: 
                 10px; text-align: center'> Muncipio con más delitos :<br> {max_municipio.upper()}</h3><br>""",
                 unsafe_allow_html=True
@@ -108,12 +110,71 @@ with col1:
 
 #Tarjeta 2 Cantidad delitos
 with col2:
-    st.markdown(f"""<h3 style='color:#254A59; 
-                background-color:#05F2F2; 
-                border: 2px solid #05F2F2; 
+    st.markdown(f"""<h3 style='color:#2D4B73; 
+                background-color:#D9B70D; 
+                border: 2px solid #2D4B73; 
                 border-radius: 10px; padding: 
                 10px; text-align: center'> Delitos reportados: <br> {max_cantidad_municipio} </h3><br>""",
                 unsafe_allow_html=True
     )
+#Tarjeta 3
+with col3:
+    st.markdown(f"""<h3 style='color:#99B4BF; 
+                background-color:#253C59; 
+                border: 2px solid #99B4BF; 
+                border-radius: 10px; padding: 
+                10px; text-align: center'> Etapa más frecuente: <br> {etapa_max_frecuente} </h3><br>""",
+                unsafe_allow_html=True
+    )
 
-#Trajeta 3 
+#Tarjeta 4
+with col4:
+    st.markdown(f"""<h3 style='color:#2D4B73; 
+                background-color:#BF8D30; 
+                border: 2px solid #2D4B73; 
+                border-radius: 10px; padding: 
+                10px; text-align: center'> Casos en esta etapa: <br> {cant_etapa_max_frecuente} </h3><br>""",
+                unsafe_allow_html=True
+    )    
+#Crar columnas xra gráficos
+col5, col6 = st.columns(2)
+
+with col5:
+    st.subheader('TIPO DELITOS')
+    tipo_delitos = df ['DELITO'].value_counts()
+    st.bar_chart(tipo_delitos)
+
+with col6:
+    st.subheader('Distribución por departamentos')
+    departamento =df['DEPARTAMENTO'].value_counts()
+    fig = px.pie(
+        values=departamento.values, 
+        names=departamento.index,
+)
+    fig.update_traces(textposition='outside', textinfo='percent+label')
+    fig.update_layout(showlegend=False, height=350)
+    st.plotly_chart(fig, key='torta_departamento')
+
+cols_grafico = ['DELITO', 'ETAPA', 'FISCAL_ASIGNADO', 'DEPARTAMENTO', 'MUNICIPIO_HECHOS']
+df_grafico = df[cols_grafico]
+  
+#Selección de datos para viualizar 
+st.subheader('Selección de datos para visualizar')
+variable = st.selectbox(
+    'Seleccione la variable para el análisis',
+    options = df_grafico.columns
+)
+grafico = df_grafico[variable].value_counts()
+st.bar_chart(grafico)
+
+if st.checkbox('Mostrar matriz de datos'):
+    st.subheader('Matriz de datos')
+    st.dataframe(df_grafico)
+    
+fiscal_consulta = st.selectbox(
+    'Seleccione fiscal a consultar:',
+    options = df['FISCAL_ASIGNADO'].unique()
+)
+
+df_fiscal = df[df['FISCAL_ASIGNADO'] == fiscal_consulta]
+st.dataframe(df_fiscal)
